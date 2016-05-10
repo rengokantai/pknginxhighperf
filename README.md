@@ -1,4 +1,53 @@
 #### pknginxhighperf
+#####3
+######configuring nginx workers
+get cpuinfo
+```
+lscpu
+cat /proc/cpuinfo | grep 'precessor' |wc -l
+```
+(e)
+```
+accept_mutex on;  //if off,only one worker will process the connection
+```
+(e)
+```
+accept_mutex_delay 500ms;
+```
+check number of descriptors
+```
+ulimit -n
+```
+setting the available file descriptor
+```
+worker_rlimit_nofile 20960;
+```
+accept as many as possible when it gets the notification of a new connection
+```
+multi_accept on;
+```
+how to process connections? pocess multiple socket streams without getting stuck
+```
+events{
+  use select/poll(--without-poll_module)  / kqueue(freebsd4.1,osx)/epoll
+}
+```
+######Configuring nginx i/o
+sendfile (h s l)
+```
+sendfile on;// default off
+```
+######configuring tcp
+(h s l)
+```
+tcp_nodelay on;
+```
+(h s l)The option tells the tcp stack to append packets and send them when the app instructs to send the packet by explicitly removing TCP_CORK 
+```
+tcp_nopush on;
+```
+
+
 #####4 Controlling buffers
 ######configuring buffers
 request body
@@ -83,6 +132,34 @@ gzip_http_version 1.1
 
 ```
 gzip_vary on;
+```
+disable gzip in some browser
+```
+gzip_disable "MSIE [1-6]\."
+```
+```
+gzip_static always;
+```
+
+######configuring logs
+(h s l)
+```
+access_log logs/access/log combined;
+log_format combined '$remote_addr - $remote_user [$time_local]'  '"$request" $status $body_bytes_sent ' '"$http_referer" "$http_user_agent"';
+```
+(h s l)
+```
+log_subrequest on;
+```
+error + level
+```
+error_log logs/warn.log warn;
+```
+```
+log_not_found on;
+```
+
+
 ```
 #####6 Using nginx Cache
 ######cache static content
